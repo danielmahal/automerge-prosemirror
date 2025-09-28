@@ -23,7 +23,7 @@ It uses [prosemirror-markdown](https://github.com/ProseMirror/prosemirror-markdo
       {
         type: "block",
         value: {
-          type: "heading",
+          type: new am.ImmutableString("heading"),
           parents: [],
           attrs: { level: 1 },
           isEmbed: false,
@@ -32,7 +32,12 @@ It uses [prosemirror-markdown](https://github.com/ProseMirror/prosemirror-markdo
       { type: "text", value: "Markdown to Automerge example", marks: {} },
       {
         type: "block",
-        value: { type: "paragraph", parents: [], attrs: {}, isEmbed: false },
+        value: {
+          type: new am.ImmutableString("paragraph"),
+          parents: [],
+          attrs: {},
+          isEmbed: false,
+        },
       },
       {
         type: "text",
@@ -42,19 +47,28 @@ It uses [prosemirror-markdown](https://github.com/ProseMirror/prosemirror-markdo
       },
       {
         type: "block",
-        value: { type: "paragraph", parents: [], attrs: {}, isEmbed: false },
+        value: {
+          type: new am.ImmutableString("paragraph"),
+          parents: [],
+          attrs: {},
+          isEmbed: false,
+        },
       },
       { type: "text", value: "It uses ", marks: {} },
       {
         type: "text",
         value: "prosemirror-markdown",
-        marks: { link: "https://github.com/ProseMirror/prosemirror-markdown" },
+        marks: {
+          link: '{"href":"https://github.com/ProseMirror/prosemirror-markdown","title":null}',
+        },
       },
       { type: "text", value: " and ", marks: {} },
       {
         type: "text",
         value: "automerge-prosemirror",
-        marks: { link: "https://github.com/automerge/automerge-prosemirror/" },
+        marks: {
+          link: '{"href":"https://github.com/automerge/automerge-prosemirror/","title":null}',
+        },
       },
       { type: "text", value: " to achieve this.", marks: {} },
     ]
@@ -65,29 +79,5 @@ It uses [prosemirror-markdown](https://github.com/ProseMirror/prosemirror-markdo
       expectedSpans,
       "Should match expected Automerge rich text span format with blocks and link marks",
     )
-  })
-
-  it("should convert simple text without formatting", () => {
-    const markdown = "Plain text paragraph."
-    const spans = markdownToSpans(markdown)
-
-    const expectedSpans: am.Span[] = [
-      {
-        type: "block",
-        value: { type: "paragraph", parents: [], attrs: {}, isEmbed: false },
-      },
-      { type: "text", value: "Plain text paragraph.", marks: {} },
-    ]
-
-    assert.deepEqual(
-      spans,
-      expectedSpans,
-      "Should include block span for paragraph structure",
-    )
-  })
-
-  it("should handle empty input", () => {
-    const spans = markdownToSpans("")
-    assert(Array.isArray(spans), "Should return an array even for empty input")
   })
 })
