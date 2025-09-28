@@ -10,7 +10,7 @@
     "playground": "vite dev playground",
     "playground:build": "vite build playground",
     "playground:preview": "vite preview playground",
-    "mocha": "node --experimental-specifier-resolution=node --experimental-loader=ts-node/esm ./node_modules/.bin/mocha ./test/**/*.spec.ts"
+    "mocha": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' ./node_modules/mocha/bin/mocha.js ./test/**/*.spec.ts"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -43,6 +43,7 @@
     "chai": "^5.0.3",
     "cypress": "^13.6.3",
     "debug": "^4.3.4",
+    "diff": "^8.0.2",
     "eslint": "^8.43.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.6",
