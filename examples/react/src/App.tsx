@@ -1,14 +1,19 @@
 import { AutomergeUrl } from "@automerge/automerge-repo"
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks"
-import { useEffect, useRef } from "react"
-import { EditorState, Transaction } from "prosemirror-state"
-import { EditorView } from "prosemirror-view"
-import { exampleSetup } from "prosemirror-example-setup"
-import { init, basicSchemaAdapter } from "@automerge/prosemirror"
+import { init } from "@automerge/prosemirror"
+// import { exampleSetup } from "prosemirror-example-setup"
+import { inputRules, wrappingInputRule } from "prosemirror-inputrules"
+import { keymap } from "prosemirror-keymap"
+import { splitListItem } from "prosemirror-schema-list"
+import { baseKeymap } from "prosemirror-commands"
 import "prosemirror-example-setup/style/style.css"
 import "prosemirror-menu/style/menu.css"
+import { EditorState, Transaction } from "prosemirror-state"
+import { EditorView } from "prosemirror-view"
 import "prosemirror-view/style/prosemirror.css"
+import { useEffect, useRef } from "react"
 import "./App.css"
+import { schemaAdapter } from "./schema"
 
 function App({ docUrl }: { docUrl: AutomergeUrl }) {
   const editorRoot = useRef<HTMLDivElement>(null)
@@ -19,12 +24,28 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
 
     if (editorRoot.current != null && handle != null) {
       const { pmDoc, schema, plugin } = init(handle, ["text"], {
-        schemaAdapter: basicSchemaAdapter,
+        schemaAdapter,
       })
       view = new EditorView(editorRoot.current, {
         state: EditorState.create({
           schema, // It's important that we use the schema from the mirror
-          plugins: [...exampleSetup({ schema }), plugin],
+          plugins: [
+            inputRules({
+              rules: [
+                wrappingInputRule(/^\s*([-+*])\s$/, schema.nodes.bulletList),
+                wrappingInputRule(
+                  /^(\d+)\.\s$/,
+                  schema.nodes.orderedList,
+                  match => ({ order: +match[1] }),
+                  (match, node) =>
+                    node.childCount + node.attrs.order == +match[1],
+                ),
+              ],
+            }),
+            keymap({ Enter: splitListItem(schema.nodes.listItem) }),
+            keymap(baseKeymap),
+            plugin,
+          ],
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           doc: pmDoc,
         }),

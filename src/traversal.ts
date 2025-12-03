@@ -45,6 +45,7 @@ export type TraversalEvent =
  * @returns
  */
 export function pmDocFromSpans(adapter: SchemaAdapter, spans: am.Span[]): Node {
+  console.log("pmDocFromSpans called")
   const events = traverseSpans(adapter, spans)
   type StackItem = {
     tag: string
@@ -652,6 +653,7 @@ class TraverseState {
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      console.log("matching type", this.currentMatch.matchType(content))
       this.currentMatch = this.currentMatch.matchType(content)!
       yield blockEvent(this.adapter, block)
       yield { type: "leafNode", tag: content.name, role: "explicit" }
