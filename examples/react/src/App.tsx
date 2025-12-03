@@ -2,7 +2,7 @@ import { AutomergeUrl } from "@automerge/automerge-repo"
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks"
 import { init } from "@automerge/prosemirror"
 // import { exampleSetup } from "prosemirror-example-setup"
-import { inputRules, wrappingInputRule } from "prosemirror-inputrules"
+import { inputRules, wrappingInputRule, InputRule } from "prosemirror-inputrules"
 import { keymap } from "prosemirror-keymap"
 import { splitListItem } from "prosemirror-schema-list"
 import { baseKeymap } from "prosemirror-commands"
@@ -40,6 +40,13 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
                   (match, node) =>
                     node.childCount + node.attrs.order == +match[1],
                 ),
+                new InputRule(/^---$/, (state, match, start, end) => {
+                  const tr = state.tr
+                  if (match[0]) {
+                    tr.replaceWith(start, end, schema.nodes.horizontal_rule.create())
+                  }
+                  return tr
+                }),
               ],
             }),
             keymap({ Enter: splitListItem(schema.nodes.listItem) }),
