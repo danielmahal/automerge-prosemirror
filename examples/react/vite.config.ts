@@ -22,7 +22,7 @@ export default defineConfig({
   // do this
   resolve: {
     alias: {
-      "@automerge/prosemirror": path.resolve(__dirname, "../../dist"),
+      "@automerge/prosemirror": path.resolve(__dirname, "../../src/index.ts"),
       "prosemirror-model": path.resolve(
         __dirname,
         "../../node_modules/prosemirror-model",
