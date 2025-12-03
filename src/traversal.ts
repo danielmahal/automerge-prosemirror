@@ -646,15 +646,55 @@ class TraverseState {
         block.type.val,
         block.isEmbed,
       )
+      
+      // For block-level embeds, we need to close any open inline containers
+      if (content.isBlock) {
+        // Close any open inline/textblock containers that can't contain blocks
+        let closeCount = 0
+        for (let i = this.stack.length - 1; i >= 0; i--) {
+          const frame = this.stack[i]
+          // Check if this node can contain block content by testing its content match
+          const canContainBlock = frame.node.contentMatch.matchType(content)
+          if (!canContainBlock) {
+            closeCount++
+          } else {
+            break
+          }
+        }
+        
+        if (closeCount > 0) {
+          const toClose = this.stack.splice(this.stack.length - closeCount)
+          for (const { node, role, lastMatch } of toClose.toReversed()) {
+            yield* this.finishStackFrame({ node, role, lastMatch })
+            yield { type: "closeTag", tag: node.name, role }
+          }
+        }
+      }
+      
       const wrapping = this.currentMatch.findWrapping(content)
       if (wrapping) {
         for (let i = 0; i < wrapping.length; i++) {
           yield this.pushNode(wrapping[i], null, "render-only")
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      console.log("matching type", this.currentMatch.matchType(content))
-      this.currentMatch = this.currentMatch.matchType(content)!
+      
+      // Check if the content can be matched at the current position
+      const match = this.currentMatch.matchType(content)
+      if (match) {
+        this.currentMatch = match
+      } else {
+        // If the content can't be matched, we need to fill before it
+        const fragment = Fragment.from(content.create())
+        const fill = this.currentMatch.fillBefore(fragment, true)
+        if (fill) {
+          yield* this.emitFragment(fill)
+          this.currentMatch = this.currentMatch.matchFragment(fill)!.matchType(content)!
+        } else {
+          // If we still can't match, it might be that we need to close some nodes
+          // and find a place where this content can be inserted
+          console.warn("Unable to match embedded content type", content.name)
+        }
+      }
       yield blockEvent(this.adapter, block)
       yield { type: "leafNode", tag: content.name, role: "explicit" }
       return
